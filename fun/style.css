@@ -1,0 +1,44 @@
+body {
+    margin: 0;
+    background-color: black;
+}
+
+.screen {
+    position: absolute;
+    overflow: hidden;
+    border: 10px solid blue;
+}
+
+.block_1,.block_2 {
+    position: absolute;
+    background-color: white;
+    width: 1px;
+    height: 1px;
+    
+}
+
+.ball {
+    position: absolute;
+    background-color: white;
+    width: 1px;
+    height: 1px;
+
+    border: transparent 0px solid;
+    border-radius: 50%;
+}
+
+.text {
+    color: green
+}
+
+.points_1,.points_2 {
+    position: absolute;
+    margin: 20px;
+    color: green;
+    text-align: center;
+    font-size: xxx-large;
+    font-weight: bold;
+}
+.points_2 {
+    right: 0;
+}

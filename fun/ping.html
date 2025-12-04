@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h2 class="text"></h2>
+    <div class="screen">
+        <div class="block_1"></div>
+        <div class="block_2"></div>
+        <div class="ball"></div>
+        <h1 class="points_1">0</h1>
+        <h1 class="points_2">1</h1>
+    </div>
+    <script>
+        // --Variables:
+
+        let unit = "px"
+
+        var points = {
+            dom1:document.querySelector(".points_1"),
+            dom2:document.querySelector(".points_2"),
+            p1:0,
+            p2:0
+        }
+
+        let body = document.querySelector("body");
+        let screen = {
+            dom:document.querySelector(".screen"),
+            size:{x:0,y:0}
+        }
+
+        var p1 = {
+            dom:document.querySelector(".block_1"),
+            size:{x:50,y:100},
+            pos:{x:0,y:0},
+            key:{up:false,down:false},
+            speed:{x:10,y:10}
+        }
+        var p2 = {
+            dom:document.querySelector(".block_2"),
+            size:{x:50,y:100},
+            pos:{x:500,y:0},
+            key:{up:false,down:false},
+            speed:{x:10,y:10}
+        }
+        var ball = {
+            dom:document.querySelector(".ball"),
+            size:{x:50,y:50},
+            pos:{x:0,y:0},
+            pulse:{x:10,y:10},
+            pulse_max:{x:10,y:10},
+            pulse_min:{x:10,y:10},
+            pulse_add:{x:0.25,y:0.25},
+            pulse_sub:{x:8,y:8},
+        }
+
+        // --Setup:
+        screen.size.x = window.screen.width/2;
+        screen.size.y = window.screen.height/2;
+        screen.dom.style.width = screen.size.x+unit;
+        screen.dom.style.height = screen.size.y+unit;
+        screen.dom.style.left = window.screen.width/2-screen.size.x/2+unit;
+        screen.dom.style.top = window.screen.height/3-screen.size.y/2+unit;
+        console.log(screen.dom.style)
+        p1.pos = {x:0,y:screen.size.y/2-p1.size.y/2};
+        p2.pos = {x:screen.size.x-p2.size.x,y:screen.size.y/2-p1.size.y/2};
+
+        ball.pos = {x:screen.size.x/2-ball.size.x/2,y:screen.size.y/2-ball.size.y/2};
+        setup();
+
+        // p1 key up ( w )
+        body.addEventListener("keydown",(key)=>{if(key.key=="w") {p1.key.up = true;}})
+        body.addEventListener("keyup",(key)=>{if(key.key=="w") {p1.key.up = false;}})
+        // p1 key down ( s )
+        body.addEventListener("keydown",(key)=>{if(key.key=="s") {p1.key.down = true;}})
+        body.addEventListener("keyup",(key)=>{if(key.key=="s") {p1.key.down = false;}})
+
+        // p2 key up ( arrow up )
+        body.addEventListener("keydown",(key)=>{if(key.key=="ArrowUp") {p2.key.up = true;}})
+        body.addEventListener("keyup",(key)=>{if(key.key=="ArrowUp") {p2.key.up = false;}})
+        // p2 key down ( arrow down )
+        body.addEventListener("keydown",(key)=>{if(key.key=="ArrowDown") {p2.key.down = true;}})
+        body.addEventListener("keyup",(key)=>{if(key.key=="ArrowDown") {p2.key.down = false;}})
+
+
+        setInterval(()=>{
+            if(p1.pos.y<=0) {p1.pos.y = 0;} 
+            else {add_pos(p1,0,p1.key.up?-p1.speed.y:0);}
+            if(p1.pos.y+p1.size.y>=screen.size.y) {p1.pos.y = 0;p1.pos.y = screen.size.y-p1.size.y;}
+            else {add_pos(p1,0,p1.key.down?p1.speed.y:0);}
+
+            if(p2.pos.y<=0) {p2.pos.y = 0;} 
+            else {add_pos(p2,0,p2.key.up?-p2.speed.y:0);}
+            if(p2.pos.y+p2.size.y>=screen.size.y) {p2.pos.y = 0;p2.pos.y = screen.size.y-p2.size.y;}
+            else {add_pos(p2,0,p2.key.down?p2.speed.y:0);}
+            
+        
+            add_pos(ball,ball.pulse.x,ball.pulse.y);
+            collide();
+
+            setup();
+        },50)
+
+        // --Start:
+    
+
+        // --Functions:
+        function setup() {
+            set_size(p1);
+            set_size(p2);
+            set_size(ball);
+            set_pos(p1);
+            set_pos(p2);
+            set_pos(ball);
+            //ball_speed();
+
+            set_points();
+            write();
+        }
+        function set_size(who) {
+            who.dom.style.width = who.size.x + unit;
+            who.dom.style.height = who.size.y + unit;
+        }
+        function set_pos(who) {
+            who.dom.style.top = who.pos.y + unit;
+            who.dom.style.left = who.pos.x + unit;
+        }
+        function add_pos(who,x,y) {
+            who.pos.x += x;
+            who.pos.y += y;
+        }
+        function ball_speed() {
+            ball.pulse.x+=ball.pulse.x>0?ball.pulse_add.x:-ball.pulse_add.x;
+            if(ball.pulse.x>0) {ball.pulse.x=ball.pulse.x>ball.pulse_max.x?ball.pulse_max.x:ball.pulse.x;}
+            else {ball.pulse.x=ball.pulse.x<-ball.pulse_max.x?-ball.pulse_max.x:ball.pulse.x;}
+            
+            
+            ball.pulse.y+=ball.pulse.y>0?ball.pulse_add.y:-ball.pulse_add.y;
+            if(ball.pulse.y>0) {ball.pulse.y=ball.pulse.y>ball.pulse_max.y?ball.pulse_max.y:ball.pulse.y;}
+            else {ball.pulse.y=ball.pulse.y<-ball.pulse_max.y?-ball.pulse_max.y:ball.pulse.y;}
+        }
+        function ball_sub_speed() {/*
+            if(ball.pulse.x>0) {
+                ball.pulse.x=ball.pulse_min.x;
+            } else {
+                ball.pulse.x=-ball.pulse_min.x;
+            }
+            
+            if(ball.pulse.y>0) {
+                ball.pulse.y=ball.pulse_min.y;
+            } else {
+                ball.pulse.y=-ball.pulse_min.y;
+
+            }*/
+            
+        }
+        function collide() {
+            
+            if((p1.pos.x+p1.size.x>ball.pos.x)&&(ball.pos.y+ball.size.y>p1.pos.y&&ball.pos.y<p1.pos.y+p1.size.y)) {
+                ball.pos.x = p1.pos.x+p1.size.x;
+                ball.pulse.x*=-1;
+                ball.pulse.y*=1;
+                ball_sub_speed();
+            }
+            if(((ball.pos.x+ball.size.x>p2.pos.x)&&(ball.pos.y+ball.size.y>p2.pos.y&&ball.pos.y<p2.pos.y+p2.size.y))) {
+                ball.pos.x = p2.pos.x-ball.size.x;
+                ball.pulse.x*=-1;
+                ball.pulse.y*=1;
+                ball_sub_speed();
+            }
+            // screen
+            if(ball.pos.x+ball.size.x<0||screen.size.x<ball.pos.x) {
+                if(ball.pos.x+ball.size.x<0) {points.p2++}
+                if(screen.size.x<ball.pos.x) {points.p1++}
+                ball.pos = {x:screen.size.x/2,y:screen.size.y/2};
+                ball.pulse = {x:ball.pulse.x*-1,y:ball.pulse.y};
+                ball_sub_speed();
+            }
+            if(ball.pos.y<0||ball.pos.y+ball.size.y>screen.size.y) {
+                ball.pos.y = ball.pos.y<0?0:screen.size.y-ball.size.y;
+
+                ball.pulse = {x:ball.pulse.x,y:ball.pulse.y*-1};
+                ball_sub_speed();
+            }
+        }
+        
+        function write() {/*
+            var text = document.querySelector(".text");
+            text.innerHTML = ball.pulse.x;*/
+            /*
+            console.log(p1);
+            console.log(p2);
+            console.log(ball);*/
+            //console.clear();
+        }
+        function set_points() {
+            points.dom1.innerHTML = points.p1;
+            points.dom2.innerHTML = points.p2;
+        }
+
+
+// 9760076990960709870
+    </script>
+</body>
+</html>
+
+
+

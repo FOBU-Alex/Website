@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Visualization</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+        }
+        .frame {
+            background-color: black;
+            position: absolute;
+            width: 500px;
+            height: 500px;
+        }
+        .circle, .circle_center {
+            background-color: blue;
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+			z-index: 2;
+        }
+        .circle:hover {
+            background-color: rgb(48, 48, 255);
+            transform: scale(1.5);
+            transition: 0.5s
+        }
+		.line {
+		transform-origin: left;
+			position: absolute;
+			width: 50px;
+			height: 50px;
+			background-color: rgb(100,0,200);
+			/* transform: rotateZ(90deg); */
+			z-index: 1;
+		}
+		.tip {
+			position: absolute;
+			color: aqua;
+			margin: 0;
+			width: 500px;
+			text-align: center;
+		}
+		.slider {
+			position: absolute;
+			color: aqua;
+			margin: 0;
+			width: 500px;
+			top: 500px;
+		}
+		.slider_text {
+			position: absolute;
+			color: aqua;
+			margin: 0;
+			width: 500px;
+			top: 525px;
+			text-align: center;
+		}
+    </style>
+</head>
+<body>
+    <div class="frame">
+        <div class="circle_center" style="left:225px;top:225px;background-color:aqua;"></div>
+		<h1 class="tip">Bewegen sie ihren Cursor</h1>
+		<input type="range" min="1" max="12" value="6" class="slider">
+		<h1 class="slider_text">Anzahl: 6</h1>
+    </div>
+    <script>
+		var sizes = {
+			frame:{
+				x:500,
+				y:500
+			},
+			circle:{
+				x:50,
+				y:50
+			},
+			line:{
+				x:25/2,
+				y:25/2
+			}
+		};
+        var frame = document.querySelector(".frame");
+        var amount = 6;
+        var time = 0;
+        var affect = 250;
+        var mouse_pos = {
+            x:-999,
+            y:-999
+        };
+		
+		
+		document.querySelector(".slider").oninput = function() {
+			document.querySelector(".slider_text").innerHTML = "Anzahl: "+this.value;
+			amount = this.value;
+			frame.querySelectorAll(".circle").forEach((element)=>{ 
+			//console.log(element);
+			element.remove();
+			
+		});
+		frame.querySelectorAll(".line").forEach((element)=>{ 
+			//console.log(element);
+			element.remove();
+		});
+			for(var i = 0;i<amount;i++) {
+			//---CIRCLE:
+            var circle = document.createElement("div");
+            circle.setAttribute("class","circle");
+            circle.setAttribute("id",i+1);
+            circle.setAttribute("style",
+                "left:"+
+                    ( 225 + 150 * Math.sin(time+radians(i*(360/amount))) )+
+                "px;top:"+
+                    ( 225 + 150 * Math.cos(time+radians(i*(360/amount))) )+
+            "px;");
+            circle.setAttribute("X",( 225 + 150 * Math.sin(time+radians(i*(360/amount))) ));
+            circle.setAttribute("Y",( 225 + 150 * Math.cos(time+radians(i*(360/amount))) ));
+			
+			circle.setAttribute("DX",( 225 + 150 * Math.sin(time+radians(i*(360/amount))) ));
+            circle.setAttribute("DY",( 225 + 150 * Math.cos(time+radians(i*(360/amount))) ));
+            frame.append(circle);
+			
+			//---LINE:
+			var line = document.createElement("div");
+            line.setAttribute("class","line");
+            line.setAttribute("id",i+1);
+            line.setAttribute("style",
+                "left:"+
+                    sizes.frame.x/2+
+                "px;top:"+
+                    (sizes.frame.y/2-sizes.line.y/2)+
+				"px;width: " +
+					Math.hypot(
+						parseInt(circle.getAttribute("X"))+sizes.circle.x/2-sizes.frame.x/2,
+						parseInt(circle.getAttribute("Y"))+sizes.circle.y/2-sizes.frame.y/2
+					) + 
+				"px;height: "+
+					sizes.line.y +
+				"px;transform: rotateZ("+
+				(time+(-i*(360/amount))+90)+
+				"deg)"
+				
+				
+			);
+            //line.setAttribute("X",( 225 + 150 * Math.sin(time+radians(i*(360/amount))) ));
+            //line.setAttribute("Y",( 225 + 150 * Math.cos(time+radians(i*(360/amount))) ));
+			
+			frame.append(line);
+        }
+		}
+        function radians(degrees) {
+            return degrees*(Math.PI/180);
+        }
+        function timer() {
+            // add time:
+            time = (time+0.1)%360;
+
+            // set the position of circles:
+            frame.querySelectorAll(".circle").forEach((element)=>{ 
+                var id = parseInt(element.getAttribute("id"))-1;
+                var pos = {
+                    x:parseInt(element.getAttribute("X")),
+                    y:parseInt(element.getAttribute("Y"))
+                };
+                var distance = Math.sqrt(Math.pow(mouse_pos.x-pos.x,2)+Math.pow(mouse_pos.y-pos.y,2));
+                var displace = {
+                    x:distance<affect? (mouse_pos.x-pos.x)*-(affect-distance):0,
+                    y:distance<affect? (mouse_pos.y-pos.y)*-(affect-distance):0
+                };
+
+                element.setAttribute("style",
+                    "left:"+
+                        ( displace.x/700 + 225 + 150 * Math.sin(radians(-time+id*(360/amount))) )+
+                    "px;top:"+
+                        ( displace.y/700 + 225 + 150 * Math.cos(radians(-time+id*(360/amount))) )+
+                "px;");
+                element.setAttribute("X",( 225 + 150 * Math.sin(radians(-time+id*(360/amount))) ));
+                element.setAttribute("Y",( 225 + 150 * Math.cos(radians(-time+id*(360/amount))) ));
+				element.setAttribute("DX",( displace.x/700 + 225 + 150 * Math.sin(radians(-time+id*(360/amount))) ));
+                element.setAttribute("DY",( displace.y/700 + 225 + 150 * Math.cos(radians(-time+id*(360/amount))) ));
+				// LINES
+				frame.querySelectorAll(".line").forEach((element2)=>{
+					if(element2.getAttribute("id")===element.getAttribute("id")) {
+					//console.log(element,element2);
+						element2.setAttribute("style",
+								"left:"+
+							sizes.frame.x/2+
+								"px;top:"+
+							(sizes.frame.y/2-sizes.line.y/2)+
+								"px;width: " +
+							Math.hypot(
+								parseInt(element.getAttribute("X"))+sizes.circle.x/2-sizes.frame.x/2,
+								parseInt(element.getAttribute("Y"))+sizes.circle.y/2-sizes.frame.y/2
+							) + 
+								"px;height: "+
+							sizes.line.y +
+								"px;transform: rotateZ("+
+								//-(time+(id*(360/amount))+90)+
+								(Math.atan2(
+								( displace.y/700 + 0 + 150 * Math.cos(radians(-time+id*(360/amount))) )
+								,
+								(displace.x/700 + 0 + 150 * Math.sin(radians(-time+id*(360/amount))) )
+								)
+								*(180/Math.PI))
+								/*(Math.atan2(
+								displace.x/700 + 225 + 150 * Math.sin(radians(-time+id*(360/amount)))-250,
+								displace.y/700 + 225 + 150 * Math.cos(radians(-time+id*(360/amount)))-250)
+								*(180/Math.PI))*/+
+							"deg)"
+							//(time+(-i*(360/amount))+90)
+							
+						);
+					}
+				});
+			});
+        }
+
+        function mouse(event) {
+            // set mouse position variable:
+            mouse_pos = {
+                x:event.clientX,
+                y:event.clientY
+            };
+        }
+        function mouse_exit() {
+            mouse_pos = {
+                x:-999,
+                y:-999
+            };
+            //console.log("EXIT");
+        }
+
+        for(var i = 0;i<amount;i++) {
+			//---CIRCLE:
+            var circle = document.createElement("div");
+            circle.setAttribute("class","circle");
+            circle.setAttribute("id",i+1);
+            circle.setAttribute("style",
+                "left:"+
+                    ( 225 + 150 * Math.sin(time+radians(i*(360/amount))) )+
+                "px;top:"+
+                    ( 225 + 150 * Math.cos(time+radians(i*(360/amount))) )+
+            "px;");
+            circle.setAttribute("X",( 225 + 150 * Math.sin(time+radians(i*(360/amount))) ));
+            circle.setAttribute("Y",( 225 + 150 * Math.cos(time+radians(i*(360/amount))) ));
+			
+			circle.setAttribute("DX",( 225 + 150 * Math.sin(time+radians(i*(360/amount))) ));
+            circle.setAttribute("DY",( 225 + 150 * Math.cos(time+radians(i*(360/amount))) ));
+            frame.append(circle);
+			
+			//---LINE:
+			var line = document.createElement("div");
+            line.setAttribute("class","line");
+            line.setAttribute("id",i+1);
+            line.setAttribute("style",
+                "left:"+
+                    sizes.frame.x/2+
+                "px;top:"+
+                    (sizes.frame.y/2-sizes.line.y/2)+
+				"px;width: " +
+					Math.hypot(
+						parseInt(circle.getAttribute("X"))+sizes.circle.x/2-sizes.frame.x/2,
+						parseInt(circle.getAttribute("Y"))+sizes.circle.y/2-sizes.frame.y/2
+					) + 
+				"px;height: "+
+					sizes.line.y +
+				"px;transform: rotateZ("+
+				(time+(-i*(360/amount))+90)+
+				"deg)"
+				
+				
+			);
+            //line.setAttribute("X",( 225 + 150 * Math.sin(time+radians(i*(360/amount))) ));
+            //line.setAttribute("Y",( 225 + 150 * Math.cos(time+radians(i*(360/amount))) ));
+			
+			frame.append(line);
+        }
+
+        setInterval(timer,10);
+        frame.addEventListener("mousemove",mouse);
+        frame.addEventListener("mouseleave",mouse_exit);
+    </script>
+</body>
+</html>
